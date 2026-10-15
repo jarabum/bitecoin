@@ -28,20 +28,17 @@ impl Block {
     }
 
     pub fn mine(&mut self) {
-        let mut hash = String::new();
-
-        println!("{hash}");
-
-        loop {
-            hash = self.get_hash();
+        let hash = loop {
+            let hash = self.get_hash();
 
             if hash.starts_with("0".repeat(self.difficulty).as_str()) {
-                break;
+                break hash;
             }
-            self.nonce += 1;
-        }
-        println!("it took {} tries", self.nonce);
 
+            self.nonce += 1;
+        };
+
+        println!("  Mined successfully ({} attempts)", self.nonce + 1);
         self.hash = hash;
     }
 }

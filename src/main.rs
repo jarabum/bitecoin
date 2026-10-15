@@ -1,9 +1,12 @@
 mod block;
+mod blockchain;
 mod crypto_functions;
 mod transaction;
 
 fn main() {
     println!("bitecoin");
+
+    let mut blockchain = blockchain::Blockchain::new();
 
     let mut transa = transaction::Transaction {
         sender: String::from("vassy"),
@@ -17,21 +20,32 @@ fn main() {
     transa.timestamp();
     transa.sign();
 
-    println!("{}, {}", transa.signature, transa.pub_key_hex);
+    println!("\nTransaction:");
+    println!("  Signature: {}", transa.signature);
+    println!("  Public key: {}", transa.pub_key_hex);
+    println!("  Verified: {}", transa.verify());
 
-    println!("{}", transa.verify());
+    for _ in 0..10 { // prida 10 blocku na testovani
+        let block = block::Block {
+            hash: String::new(),
+            prev_hash: String::new(),
+            nonce: 0,
+            transactions: Vec::new(),
+            timestamp: 0,
+            difficulty: 4,
+        };
 
-    let mut block = block::Block {
-        hash: String::new(),
-        prev_hash: String::from("aslnhfasb"),
-        nonce: 0,
-        transactions: vec![transa],
-        timestamp: 0,
-        difficulty: 5,
-    };
+        blockchain.add_block(block);
+    }
 
-    block.timestamp();
+    println!("\nBlockchain");
+    println!("  Length: {}", blockchain.chain.len());
 
-    block.mine();
-    println!("{}", block.hash);
+    for (i, block) in blockchain.chain.iter().enumerate() {
+        println!("\n  Block {}", i);
+        println!("    Hash: {}", block.hash);
+        println!("    Previous: {}", block.prev_hash);
+    }
+
+    println!("Blockchain valid: {}", blockchain.is_valid());
 }
