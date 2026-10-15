@@ -1,5 +1,4 @@
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
-use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
 
 pub fn hash(input: String) -> String {
@@ -24,7 +23,8 @@ pub fn sign(priv_key_hex: &String, data: &String) -> String {
 }
 
 pub fn generate_priv_key() -> String {
-    let priv_key = SigningKey::generate(&mut OsRng);
+    let mut rng = rand::rng();
+    let priv_key = SigningKey::generate(&mut rng);
 
     hex::encode(priv_key.to_bytes())
 }
