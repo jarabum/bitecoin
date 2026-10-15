@@ -23,8 +23,8 @@ pub fn sign(priv_key_hex: &String, data: &String) -> String {
 }
 
 pub fn generate_priv_key() -> String {
-    let mut Rng = rand::rng();
-    let priv_key = SigningKey::generate(&mut Rng);
+    let mut rng = rand::rng();
+    let priv_key = SigningKey::generate(&mut rng);
 
     hex::encode(priv_key.to_bytes())
 }
