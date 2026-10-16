@@ -8,14 +8,8 @@ fn main() {
 
     let mut blockchain = blockchain::Blockchain::new();
 
-    let mut transa = transaction::Transaction {
-        sender: String::from("vassy"),
-        receiver: String::from("maboj"),
-        signature: String::new(),
-        amount: 1000,
-        pub_key_hex: String::new(),
-        timestamp: 0,
-    };
+    let mut transa =
+        transaction::Transaction::new(String::from("test1"), String::from("test2"), 999);
 
     transa.timestamp();
     transa.sign();
@@ -25,26 +19,32 @@ fn main() {
     println!("  Public key: {}", transa.pub_key_hex);
     println!("  Verified: {}", transa.verify());
 
-    for _ in 0..10 { // prida 10 blocku na testovani
-        let block = block::Block {
-            hash: String::new(),
-            prev_hash: String::new(),
-            nonce: 0,
-            transactions: Vec::new(),
-            timestamp: 0,
-            difficulty: 4,
-        };
+    blockchain.add_transaction_pending(transa);
+
+    for i in 0..1 {
+        // adds blocks for testing
+        let mut block = block::Block::new(
+            i + 1,
+            blockchain.get_newest_hash(),
+            Vec::new(),
+            blockchain.difficulty,
+        );
+
+        block.timestamp();
 
         blockchain.add_block(block);
     }
 
+    blockchain.mine_pending();
+
     println!("\nBlockchain");
     println!("  Length: {}", blockchain.chain.len());
 
-    for (i, block) in blockchain.chain.iter().enumerate() {
-        println!("\n  Block {}", i);
+    for block in blockchain.chain.iter() {
+        println!("\n  Block {}", block.id);
         println!("    Hash: {}", block.hash);
         println!("    Previous: {}", block.prev_hash);
+        println!("    Transactions: {:?}", block.transactions);
     }
 
     println!("Blockchain valid: {}", blockchain.is_valid());
