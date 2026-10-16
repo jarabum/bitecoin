@@ -1,20 +1,38 @@
-use crate::{crypto_functions, transaction};
+use crate::{crypto_functions, transaction::Transaction};
 use std::time::SystemTime;
 
 pub struct Block {
+    pub id: usize,
     pub hash: String,
     pub prev_hash: String,
     pub nonce: u128,
-    pub transactions: Vec<transaction::Transaction>,
+    pub transactions: Vec<Transaction>,
     pub timestamp: u64,
     pub difficulty: usize,
 }
 
 impl Block {
+    pub fn new(
+        id: usize,
+        prev_hash: String,
+        transactions: Vec<Transaction>,
+        difficulty: usize,
+    ) -> Self {
+        Block {
+            id,
+            hash: String::new(),
+            prev_hash,
+            nonce: 0,
+            transactions,
+            timestamp: 0,
+            difficulty,
+        }
+    }
+
     pub fn get_hash(&self) -> String {
         let data = format!(
-            "{}{}{:?}{}{}",
-            self.prev_hash, self.nonce, self.transactions, self.timestamp, self.difficulty
+            "{}{}{:?}{}{}{}",
+            self.prev_hash, self.nonce, self.transactions, self.timestamp, self.difficulty, self.id
         );
 
         crypto_functions::hash(data)
@@ -28,20 +46,17 @@ impl Block {
     }
 
     pub fn mine(&mut self) {
-        let mut hash = String::new();
-
-        println!("{hash}");
-
-        loop {
-            hash = self.get_hash();
+        let hash = loop {
+            let hash = self.get_hash();
 
             if hash.starts_with("0".repeat(self.difficulty).as_str()) {
-                break;
+                break hash;
             }
-            self.nonce += 1;
-        }
-        println!("it took {} tries", self.nonce);
 
+            self.nonce += 1;
+        };
+
+        println!("  Mined successfully ({} attempts)", self.nonce);
         self.hash = hash;
     }
 }
