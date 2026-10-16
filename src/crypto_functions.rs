@@ -1,5 +1,6 @@
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use sha2::{Digest, Sha256};
+use ripemd::Ripemd160;
 
 pub fn hash(input: String) -> String {
     let mut hasher = Sha256::new();
@@ -8,6 +9,22 @@ pub fn hash(input: String) -> String {
     let hash = hasher.finalize();
 
     hex::encode(hash)
+}
+
+pub fn create_adress(pub_key_hex: &String) -> String {
+    let pub_key = hex::decode(pub_key_hex)
+        .expect("Invalid public key");
+
+    let sha256 = Sha256::digest(&pub_key);
+    let ripemd160 = Ripemd160::digest(sha256);
+
+    let mut payload = vec![0x00];
+    payload.extend_from_slice(&ripemd160);
+
+    let checksum = Sha256::digest(Sha256::digest(&payload));
+    payload.extend_from_slice(&checksum[..4]);
+
+    bs58::encode(payload).into_string()
 }
 
 pub fn sign(priv_key_hex: &String, data: &String) -> String {
