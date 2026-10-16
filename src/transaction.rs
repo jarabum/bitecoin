@@ -1,5 +1,6 @@
 use crate::crypto_functions;
 use std::time::SystemTime;
+use crate::wallet;
 
 #[derive(Debug)]
 pub struct Transaction {
@@ -25,18 +26,16 @@ impl Transaction {
         }
     }
 
-    pub fn sign(&mut self) {
+    pub fn sign(&mut self, wallet: &wallet::Wallet) {
         let hash = crypto_functions::hash(format!(
-            "{}{}{}{}",
-            self.sender, self.receiver, self.amount, self.timestamp
-        )); //TODO: add pub_key_hex to hash
+            "{}{}{}{}{}",
+            self.sender, self.receiver, self.amount, self.timestamp, wallet.pub_key
+        ));
 
-        let priv_key_hex = crypto_functions::generate_priv_key();
-        let pub_key_hex = crypto_functions::get_pub_key(&priv_key_hex);
 
-        self.pub_key_hex = pub_key_hex;
+        self.pub_key_hex = wallet.pub_key.clone();
+        self.signature = crypto_functions::sign(&wallet.priv_key, &hash);
 
-        self.signature = crypto_functions::sign(&priv_key_hex, &hash);
         self.hash = hash;
     }
 
