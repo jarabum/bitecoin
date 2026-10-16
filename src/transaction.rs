@@ -4,6 +4,7 @@ use std::time::SystemTime;
 #[derive(Debug)]
 pub struct Transaction {
     pub sender: String,
+    pub hash: String,
     pub receiver: String,
     pub amount: u128,
     pub signature: String,
@@ -12,21 +13,35 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    pub fn new(sender: String, receiver: String, amount: u128) -> Self {
+        Transaction {
+            sender,
+            hash: String::new(),
+            receiver,
+            amount,
+            signature: String::new(),
+            pub_key_hex: String::new(),
+            timestamp: 0,
+        }
+    }
+
     pub fn sign(&mut self) {
-        let data = format!("{}{}{}", self.sender, self.receiver, self.amount);
+        let hash = crypto_functions::hash(format!(
+            "{}{}{}{}",
+            self.sender, self.receiver, self.amount, self.timestamp
+        )); //TODO: add pub_key_hex to hash
 
         let priv_key_hex = crypto_functions::generate_priv_key();
         let pub_key_hex = crypto_functions::get_pub_key(&priv_key_hex);
 
         self.pub_key_hex = pub_key_hex;
 
-        self.signature = crypto_functions::sign(&priv_key_hex, &data);
+        self.signature = crypto_functions::sign(&priv_key_hex, &hash);
+        self.hash = hash;
     }
 
     pub fn verify(&self) -> bool {
-        let data = format!("{}{}{}", self.sender, self.receiver, self.amount);
-
-        crypto_functions::verify_signature(&self.pub_key_hex, &self.signature, &data)
+        crypto_functions::verify_signature(&self.pub_key_hex, &self.signature, &self.hash)
     }
 
     pub fn timestamp(&mut self) {
