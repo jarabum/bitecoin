@@ -1,62 +1,51 @@
-use crate::{crypto_functions, transaction::Transaction};
-use std::time::SystemTime;
+use crate::{helpful_stuff, transaction::Transaction};
 
+// block struct
 pub struct Block {
-    pub id: usize,
+    pub height: u32,
     pub hash: String,
     pub prev_hash: String,
     pub nonce: u128,
-    pub transactions: Vec<Transaction>,
+    pub tx: Vec<Transaction>,
+    pub tx_hash: String,
     pub timestamp: u64,
-    pub difficulty: usize,
+    pub difficulty: u16,
 }
 
 impl Block {
-    pub fn new(
-        id: usize,
-        prev_hash: String,
-        transactions: Vec<Transaction>,
-        difficulty: usize,
-    ) -> Self {
-        Block {
-            id,
+    // use this to create a new block
+    pub fn new(height: u32, prev_hash: String, tx: Vec<Transaction>, difficulty: u16) -> Self {
+        let mut block = Block {
+            height,
             hash: String::new(),
             prev_hash,
             nonce: 0,
-            transactions,
-            timestamp: 0,
+            tx,
+            tx_hash: String::new(),
+            timestamp: helpful_stuff::get_time(),
             difficulty,
-        }
-    }
-
-    pub fn get_hash(&self) -> String {
-        let data = format!(
-            "{}{}{:?}{}{}{}",
-            self.prev_hash, self.nonce, self.transactions, self.timestamp, self.difficulty, self.id
-        );
-
-        crypto_functions::hash(data)
-    }
-
-    pub fn timestamp(&mut self) {
-        match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-            Ok(n) => self.timestamp = n.as_secs(),
-            Err(_) => panic!("Invalid Systemtime"),
-        }
-    }
-
-    pub fn mine(&mut self) {
-        let hash = loop {
-            let hash = self.get_hash();
-
-            if hash.starts_with("0".repeat(self.difficulty).as_str()) {
-                break hash;
-            }
-
-            self.nonce += 1;
         };
 
-        println!("  Mined successfully ({} attempts)", self.nonce);
-        self.hash = hash;
+        block.hash_tx();
+        block.hash = block.get_hash();
+
+        block
+    }
+
+    // this hashes the transactions
+    pub fn hash_tx(&mut self) {
+        let data = format!("{:?}", self.tx);
+
+        self.tx_hash = helpful_stuff::hash(data.as_str());
+    }
+
+    // this returns the block hash
+    pub fn get_hash(&self) -> String {
+        let data = format!(
+            "{}{}{}{}{}{}",
+            self.height, self.prev_hash, self.nonce, self.tx_hash, self.timestamp, self.difficulty
+        );
+
+        helpful_stuff::hash(data.as_str())
     }
 }

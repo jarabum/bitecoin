@@ -1,0 +1,21 @@
+- create 2 types of versions: address format version and software version
+
+- make verify_address check also the address version
+
+- create a constant for address length in helpful_stuff.rs
+
+- make block include transaction id instead of the whole transaction in its hash
+
+- "5. The wallet still has public key material. priv_key is a pub hex string, and the set_pub_key / set_address setters are public, so you can make a wallet whose address doesn’t match its key. Compute everything in new and make the setters private (or delete them). Make the fields private and use getters. Fine for learning, but it’s worth fixing before the project grows." -- this shit
+
+- "Wallet and Transaction import each other. Rust allows it, but it hints at a design smell. send_money on Wallet needs the UTXO set, so when you add it, pass it in as a parameter (send_money(&self, utxos: &UtxoSet, ...)) rather than having the wallet own chain state." -- also this fucking thing
+
+- add a blockchain
+
+- add block mining
+
+- and also add storing the whole thing in a database or something
+
+- fix up the unused import stuff
+
+- add fees

@@ -1,65 +1,19 @@
 mod block;
-mod blockchain;
-mod crypto_functions;
+mod helpful_stuff;
 mod transaction;
 mod wallet;
 
+// just some testing stuff for now
 fn main() {
-    println!("bitecoin\n");
+    println!("bitecoin");
 
-    let (wallet_location, wallet_name, wallet_password) = wallet::ask_wallet_details();
-    println!("\nWallet details");
-    println!("  Chosen wallet location: {wallet_location}");
-    println!("  Chosen wallet name: {wallet_name}");
-    println!("  Chosen wallet password: {wallet_password}\n");
-
-    
     let wallet = wallet::Wallet::new();
 
-    println!("\nWallet");
-    println!("  Adress: {}", wallet.address);
-    println!("  Public key: {}", wallet.pub_key);
-    println!("  Private key: {}", wallet.priv_key);
-
-    let mut blockchain = blockchain::Blockchain::new();
-
-    let mut transa = transaction::Transaction::new(String::from("test1"), String::from("test2"), 999);
-
-    transa.timestamp();
-    transa.sign(&wallet);
-
-    println!("\nTransaction:");
-    println!("  Signature: {}", transa.signature);
-    println!("  Public key: {}", transa.pub_key_hex);
-    println!("  Verified: {}", transa.verify());
-
-    blockchain.add_transaction_pending(transa);
-
-    for i in 0..1 {
-        // adds blocks for testing
-        let mut block = block::Block::new(
-            i + 1,
-            blockchain.get_newest_hash(),
-            Vec::new(),
-            blockchain.difficulty,
-        );
-
-        block.timestamp();
-
-        blockchain.add_block(block);
+    match wallet.send_money(
+        "bite0001bc1949c7e140914b919339c1a34cacb12338ab95fdfe86b0",
+        11,
+    ) {
+        Ok(tx) => println!("{:?}\n{:?}\n{}", tx.inputs, tx.outputs, tx.timestamp),
+        Err(e) => println!("error when creating transaction: {e}"),
     }
-
-    blockchain.mine_pending();
-
-    println!("\nBlockchain");
-    println!("  Length: {}", blockchain.chain.len());
-
-    for block in blockchain.chain.iter() {
-        println!("\n  Block {}", block.id);
-        println!("    Hash: {}", block.hash);
-        println!("    Previous: {}", block.prev_hash);
-        println!("    Transactions: {:?}", block.transactions);
-    }
-
-    println!("Blockchain valid: {}", blockchain.is_valid());
 }
