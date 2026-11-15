@@ -1,44 +1,43 @@
-use crate::wallet::Wallet;
-use crate::{helpful_stuff, wallet};
+use crate::{helpful_stuff, wallet::Wallet};
 
-// output point struct
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct OutPoint {
-    pub tx_id: String,
-    pub index: u32,
+// main transaction struct
+#[derive(Debug)]
+pub struct Transaction {
+    pub inputs: Vec<InputTx>,
+    pub outputs: Vec<OutputTx>,
+    pub timestamp: u64,
 }
 
-// transaction input struct
-#[derive(Clone, Debug)]
-pub struct TxInput {
+// input transaction struct
+#[derive(Debug)]
+pub struct InputTx {
     pub prev_tx_id: String,
     pub output_index: u32,
     pub pub_key: String,
     pub signature: String,
 }
 
-// transaction output struct
-#[derive(Clone, Debug)]
-pub struct TxOutput {
-    pub amount: u128,
+// output transaction struct
+#[derive(Debug)]
+pub struct OutputTx {
     pub recipient: String,
+    pub amount: u128,
 }
 
-// transaction struct
-#[derive(Clone, Debug)]
-pub struct Transaction {
-    pub inputs: Vec<TxInput>,
-    pub outputs: Vec<TxOutput>,
-    pub timestamp: u64,
+// output point struct (used to tell which output transaction we are using)
+#[derive(Debug)]
+pub struct OutPoint {
+    pub tx_id: String,
+    pub index: u32,
 }
 
 impl Transaction {
-    // use this when creating a new transaction
     pub fn new(
         sender_wallet: &Wallet,
         receiver_addr: &str,
         amount: u128,
-        spendable: Vec<(OutPoint, TxOutput)>,
+        fee: u128,
+        spendable: Vec<(OutPoint, OutputTx)>,
     ) -> Result<Self, String> {
         if amount == 0 {
             return Err("amount must be > 0".into());
@@ -48,34 +47,40 @@ impl Transaction {
             return Err("error when verifying receiver address".into());
         }
 
+        let needed = amount.checked_add(fee).ok_or("amount overflow")?;
+
         let mut selected = Vec::new();
         let mut total: u128 = 0;
+
         for (outpoint, output) in spendable {
             total = total.checked_add(output.amount).ok_or("overflow")?;
             selected.push(outpoint);
-            if total >= amount {
+            if total >= needed {
                 break;
             }
         }
-        if total < amount {
-            return Err("Insufficient funds".into());
+
+        if total < needed {
+            return Err("insufficient funds".into());
         }
 
-        let mut outputs = vec![TxOutput {
+        let mut outputs = vec![OutputTx {
             amount,
             recipient: String::from(receiver_addr),
         }];
-        let change = total - amount;
+
+        let change = total - needed;
+
         if change > 0 {
-            outputs.push(TxOutput {
+            outputs.push(OutputTx {
                 amount: change,
-                recipient: sender_wallet.address.clone(),
+                recipient: sender_wallet.address.to_string(),
             });
         }
 
         let inputs = selected
             .into_iter()
-            .map(|op| TxInput {
+            .map(|op| InputTx {
                 prev_tx_id: op.tx_id,
                 output_index: op.index,
                 pub_key: sender_wallet.pub_key.clone(),
@@ -93,26 +98,25 @@ impl Transaction {
         Ok(transaction)
     }
 
-    // this returns a String that then gets signed by the wallet priv_key
+    // this returns a Strign that then gets signed by the wallet
     pub fn signing_payload(&self) -> String {
-        let mut s = String::new();
+        let mut payload = String::new();
+
         for i in &self.inputs {
-            s += &format!("in:{}:{};", i.prev_tx_id, i.output_index);
+            payload += &format!("in:{}:{};", i.prev_tx_id, i.output_index);
         }
+
         for o in &self.outputs {
-            s += &format!("out:{}:{};", o.recipient, o.amount);
+            payload += &format!("out:{}:{};", o.recipient, o.amount);
         }
-        s += &format!("t:{}", self.timestamp);
-        s
+
+        payload += &format!("t:{}", self.timestamp);
+        payload
     }
 
-    pub fn id(&self) -> String {
-        helpful_stuff::hash(&self.signing_payload())
-    }
-
-    // this signs all the data that needs to be signed in the transaction
+    // this signs every input transaction
     pub fn sign(&mut self, wallet: &Wallet) {
-        let signature = wallet.get_signature(self.signing_payload().as_str());
+        let signature = wallet.get_signature(&self.signing_payload().as_str());
         for input in &mut self.inputs {
             input.signature = signature.clone();
         }

@@ -9,10 +9,10 @@ fn main() {
 
     let wallet = wallet::Wallet::new();
 
-    match wallet.send_money(
-        "bite0001bc1949c7e140914b919339c1a34cacb12338ab95fdfe86b0",
-        11,
-    ) {
+    println!("{}", helpful_stuff::verify_address(wallet.address.as_str()));
+    println!("{}", wallet.address);
+
+    match wallet.send_money("bite01efb570a0be06479ba67842d3a2e223ac69536870951b99ea", 11) {
         Ok(tx) => println!("{:?}\n{:?}\n{}", tx.inputs, tx.outputs, tx.timestamp),
         Err(e) => println!("error when creating transaction: {e}"),
     }

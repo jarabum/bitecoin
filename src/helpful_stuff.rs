@@ -2,6 +2,9 @@ use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use sha2::{Digest, Sha256};
 use std::time::SystemTime;
 
+pub const VERSION: &str = "0001";
+pub const ADDR_VERSION: &str = "01";
+
 // this hashes the input and returns the hex of the hash
 pub fn hash(input: &str) -> String {
     let mut hasher = Sha256::new();
@@ -34,12 +37,16 @@ pub fn generate_priv_key() -> String {
 
 // this returns true if a wallet address is correct
 pub fn verify_address(address: &str) -> bool {
-    // "bite" (4) + version (4) + hash (32) + checksum (16) = 56
-    if address.len() != 56 || !address.is_ascii() || !address.starts_with("bite") {
+    // "bite" (4) + version (2) + hash (32) + checksum (16) = 54
+    if address.len() != 54
+        || !address.is_ascii()
+        || !address.starts_with("bite")
+        || &address[4..6] != ADDR_VERSION
+    {
         return false;
     }
 
-    let (body, checksum) = address.split_at(56 - 16);
+    let (body, checksum) = address.split_at(54 - 16);
 
     &hash(body)[0..16] == checksum
 }
@@ -97,9 +104,4 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
     pub_key
         .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
         .is_ok()
-}
-
-// this returns the current code version which is stored in ./version.txt
-pub fn get_version() -> String {
-    String::from(include_str!("./version.txt").trim())
 }

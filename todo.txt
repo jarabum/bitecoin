@@ -1,8 +1,8 @@
-- create 2 types of versions: address format version and software version
+- create 2 types of versions: address format version and software version -- done
 
-- make verify_address check also the address version
+- make verify_address check also the address version -- done
 
-- create a constant for address length in helpful_stuff.rs
+- create a constant for address length in helpful_stuff.rs -- done
 
 - make block include transaction id instead of the whole transaction in its hash
 
@@ -18,4 +18,4 @@
 
 - fix up the unused import stuff
 
-- add fees
+- add fees -- done

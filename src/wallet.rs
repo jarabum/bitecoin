@@ -1,4 +1,5 @@
 use crate::helpful_stuff;
+use crate::helpful_stuff::ADDR_VERSION;
 use crate::transaction;
 use crate::transaction::Transaction;
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
@@ -50,9 +51,7 @@ impl Wallet {
 
         let full_hash = helpful_stuff::hash(pub_key_hex);
 
-        let first_half = String::from("bite")
-            + helpful_stuff::get_version().as_str()
-            + &full_hash[0..PUB_KEY_HASH_LENGTH];
+        let first_half = String::from("bite") + ADDR_VERSION + &full_hash[0..PUB_KEY_HASH_LENGTH];
 
         let checksum_full = helpful_stuff::hash(first_half.as_str());
         let checksum_half = &checksum_full[0..CHECKSUM_LENGTH];
@@ -68,13 +67,13 @@ impl Wallet {
     pub fn send_money(&self, receiver_addr: &str, amount: u128) -> Result<Transaction, String> {
         //TODO: add real uxto
 
-        let spendable: Vec<(transaction::OutPoint, transaction::TxOutput)> = Vec::from([
+        let spendable: Vec<(transaction::OutPoint, transaction::OutputTx)> = Vec::from([
             (
                 transaction::OutPoint {
                     tx_id: String::from("ab12..."),
                     index: 0,
                 },
-                transaction::TxOutput {
+                transaction::OutputTx {
                     amount: 10,
                     recipient: String::from("bite...alice"),
                 },
@@ -84,14 +83,14 @@ impl Wallet {
                     tx_id: String::from("cd34..."),
                     index: 1,
                 },
-                transaction::TxOutput {
+                transaction::OutputTx {
                     amount: 4,
                     recipient: String::from("bite...alice"),
                 },
             ),
         ]);
 
-        let tx = Transaction::new(self, receiver_addr, amount, spendable)?;
+        let tx = Transaction::new(self, receiver_addr, amount, 1, spendable)?;
 
         Ok(tx)
     }
