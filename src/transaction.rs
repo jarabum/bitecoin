@@ -98,7 +98,7 @@ impl Transaction {
         Ok(transaction)
     }
 
-    // this returns a Strign that then gets signed by the wallet
+    // this returns a String that then gets signed by the wallet
     pub fn signing_payload(&self) -> String {
         let mut payload = String::new();
 
