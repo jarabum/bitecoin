@@ -66,25 +66,6 @@ pub fn sign(priv_key_hex: &str, data: &str) -> String {
 
 // this verifies a signature using a public key
 pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> bool {
-    /*
-    let signature_bytes: [u8; 64] = hex::decode(signature_hex)
-        .expect("Invalid hex signature")
-        .try_into()
-        .expect("Signature must be 64 bytes");
-    let signature = &Signature::from_bytes(&signature_bytes);
-
-    let pub_key_bytes: [u8; 32] = hex::decode(pub_key_hex)
-        .expect("Invalid hex public key")
-        .try_into()
-        .expect("Public key must be 32 bytes");
-    let pub_key = VerifyingKey::from_bytes(&pub_key_bytes).expect("Invalid public key");
-
-    match pub_key.verify(data.as_bytes(), signature) {
-        Ok(()) => true,
-        Err(_) => false,
-    }
-    */
-
     let Ok(sig_bytes) = hex::decode(signature_hex) else {
         return false;
     };
