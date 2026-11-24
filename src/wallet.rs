@@ -40,4 +40,8 @@ impl Wallet {
 
         self.address = first_half + checksum_half;
     }
+
+    pub fn sign(&self, data: &str) -> String {
+        helpful_stuff::sign(self.priv_key.as_str(), data)
+    }
 }

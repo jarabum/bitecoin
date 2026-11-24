@@ -22,4 +22,13 @@ fn main() {
         "\nis wallet address valid: {}",
         helpful_stuff::verify_address(wallet.address.as_str())
     );
+
+    let mut signature = wallet.sign("bitecoin");
+
+    println!("\n'bitecoin' signature with wallet: {}", signature);
+
+    println!(
+        "is signature valid: {}",
+        helpful_stuff::verify_signature(wallet.pub_key.as_str(), signature.as_str(), "bitecoin")
+    );
 }

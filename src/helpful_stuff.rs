@@ -62,8 +62,7 @@ pub fn verify_address(address: &str) -> bool {
     &hash(body)[0..16] == checksum
 }
 
-/*
-// this signs some data with a private key hex
+// this signs some data with a private key hex and returns the signature
 pub fn sign(priv_key_hex: &str, data: &str) -> String {
     let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
         .expect("Invalid private key hex")
@@ -76,7 +75,7 @@ pub fn sign(priv_key_hex: &str, data: &str) -> String {
     hex::encode(signature.to_bytes())
 }
 
-// this verifies a signature using a public key
+// this verifies a signature using a public key and returns true if its valid
 pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> bool {
     let Ok(sig_bytes) = hex::decode(signature_hex) else {
         return false;
@@ -98,4 +97,3 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
         .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
         .is_ok()
 }
-*/
