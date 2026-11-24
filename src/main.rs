@@ -17,4 +17,9 @@ fn main() {
     println!("\nwallet private key: {}", wallet.priv_key);
     println!("wallet public key: {}", wallet.pub_key);
     println!("wallet address: {}", wallet.address);
+
+    println!(
+        "\nis wallet address valid: {}",
+        helpful_stuff::verify_address(wallet.address.as_str())
+    );
 }

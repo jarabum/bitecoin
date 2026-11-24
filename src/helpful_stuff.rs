@@ -46,7 +46,6 @@ pub fn get_pub_key(priv_key_hex: &str) -> String {
     hex::encode(priv_key.verifying_key().as_bytes())
 }
 
-/*
 // this returns true if a wallet address is correct
 pub fn verify_address(address: &str) -> bool {
     // "bite" (4) + version (2) + hash (32) + checksum (16) = 54
@@ -63,6 +62,7 @@ pub fn verify_address(address: &str) -> bool {
     &hash(body)[0..16] == checksum
 }
 
+/*
 // this signs some data with a private key hex
 pub fn sign(priv_key_hex: &str, data: &str) -> String {
     let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
