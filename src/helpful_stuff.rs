@@ -27,6 +27,15 @@ pub fn get_time() -> u64 {
     time
 }
 
+// this generates and returns a new private key
+pub fn generate_priv_key() -> String {
+    let mut rng = rand::rng();
+    let priv_key = SigningKey::generate(&mut rng);
+
+    hex::encode(priv_key.to_bytes())
+}
+
+// this returns a public key that is generated from a private key
 pub fn get_pub_key(priv_key_hex: &str) -> String {
     let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
         .expect("Invalid private key hex")
@@ -35,14 +44,6 @@ pub fn get_pub_key(priv_key_hex: &str) -> String {
     let priv_key = SigningKey::from_bytes(&priv_key_bytes);
 
     hex::encode(priv_key.verifying_key().as_bytes())
-}
-
-// this generates and returns a new private key
-pub fn generate_priv_key() -> String {
-    let mut rng = rand::rng();
-    let priv_key = SigningKey::generate(&mut rng);
-
-    hex::encode(priv_key.to_bytes())
 }
 
 /*
