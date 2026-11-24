@@ -27,7 +27,16 @@ pub fn get_time() -> u64 {
     time
 }
 
-/*
+pub fn get_pub_key(priv_key_hex: &str) -> String {
+    let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
+        .expect("Invalid private key hex")
+        .try_into()
+        .expect("Private key must be 32 bytes");
+    let priv_key = SigningKey::from_bytes(&priv_key_bytes);
+
+    hex::encode(priv_key.verifying_key().as_bytes())
+}
+
 // this generates and returns a new private key
 pub fn generate_priv_key() -> String {
     let mut rng = rand::rng();
@@ -36,6 +45,7 @@ pub fn generate_priv_key() -> String {
     hex::encode(priv_key.to_bytes())
 }
 
+/*
 // this returns true if a wallet address is correct
 pub fn verify_address(address: &str) -> bool {
     // "bite" (4) + version (2) + hash (32) + checksum (16) = 54
