@@ -27,6 +27,7 @@ pub fn get_time() -> u64 {
     time
 }
 
+/*
 // this generates and returns a new private key
 pub fn generate_priv_key() -> String {
     let mut rng = rand::rng();
@@ -86,3 +87,4 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
         .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
         .is_ok()
 }
+*/
