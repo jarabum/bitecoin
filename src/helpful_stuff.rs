@@ -27,13 +27,23 @@ pub fn get_time() -> u64 {
     time
 }
 
-/*
 // this generates and returns a new private key
 pub fn generate_priv_key() -> String {
     let mut rng = rand::rng();
     let priv_key = SigningKey::generate(&mut rng);
 
     hex::encode(priv_key.to_bytes())
+}
+
+// this returns a public key that is generated from a private key
+pub fn get_pub_key(priv_key_hex: &str) -> String {
+    let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
+        .expect("Invalid private key hex")
+        .try_into()
+        .expect("Private key must be 32 bytes");
+    let priv_key = SigningKey::from_bytes(&priv_key_bytes);
+
+    hex::encode(priv_key.verifying_key().as_bytes())
 }
 
 // this returns true if a wallet address is correct
@@ -52,7 +62,7 @@ pub fn verify_address(address: &str) -> bool {
     &hash(body)[0..16] == checksum
 }
 
-// this signs some data with a private key hex
+// this signs some data with a private key hex and returns the signature
 pub fn sign(priv_key_hex: &str, data: &str) -> String {
     let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
         .expect("Invalid private key hex")
@@ -65,7 +75,7 @@ pub fn sign(priv_key_hex: &str, data: &str) -> String {
     hex::encode(signature.to_bytes())
 }
 
-// this verifies a signature using a public key
+// this verifies a signature using a public key and returns true if its valid
 pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> bool {
     let Ok(sig_bytes) = hex::decode(signature_hex) else {
         return false;
@@ -87,4 +97,3 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
         .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
         .is_ok()
 }
-*/
