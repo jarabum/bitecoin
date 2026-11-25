@@ -6,7 +6,8 @@ pub struct Transaction {
     pub inputs: Vec<InputTx>,
     pub outputs: Vec<OutputTx>,
     pub timestamp: u64,
-    pub coinbase_height: Option<u32>,
+    pub id: String,
+    // pub coinbase_height: Option<u32>,
 }
 
 // input transaction struct
@@ -93,13 +94,15 @@ impl Transaction {
             inputs,
             outputs,
             timestamp: helpful_stuff::get_time(),
-            coinbase_height: None,
+            id: String::new(),
+            // coinbase_height: None,
         };
 
-        transaction.sign(sender_wallet);
+        //transaction.sign(sender_wallet);
         Ok(transaction)
     }
 
+    /*
     // this returns true if the transaction is a coinbase transaction
     pub fn is_coinbase(&self) -> bool {
         self.inputs.is_empty()
@@ -148,5 +151,5 @@ impl Transaction {
         for input in &mut self.inputs {
             input.signature = signature.clone();
         }
-    }
+    } */
 }
