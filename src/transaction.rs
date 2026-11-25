@@ -146,9 +146,31 @@ impl Transaction {
         payload
     }
 
+    pub fn full_payload(&self) -> String {
+        let mut payload = String::new();
+
+        for i in &self.inputs {
+            payload += &format!(
+                "in:{}:{}:{}:{};",
+                i.prev_tx_id, i.output_index, i.pub_key, i.signature
+            );
+        }
+
+        for o in &self.outputs {
+            payload += &format!("out:{}:{};", o.recipient, o.amount);
+        }
+
+        if let Some(h) = self.coinbase_height {
+            payload += &format!("cb:{};", h);
+        }
+
+        payload += &format!("t:{}", self.timestamp);
+        payload
+    }
+
     // this returns the id of the transaction
     pub fn get_id(&self) -> String {
-        helpful_stuff::hash(self.signing_payload().as_str())
+        helpful_stuff::hash(self.full_payload().as_str())
     }
 
     // this signs every input transaction

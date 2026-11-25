@@ -45,7 +45,10 @@ fn main() {
         helpful_stuff::to_satoshi(1).expect("amount too large"),
         spendable,
     ) {
-        Ok(tx) => println!("{:?}", tx),
+        Ok(tx) => {
+            println!("{:?}", tx);
+            println!("\nfull transaction payload: {}", tx.full_payload());
+        }
         Err(e) => println!("error while creating transaction: {e}"),
     }
 
