@@ -48,4 +48,12 @@ fn main() {
         Ok(tx) => println!("{:?}", tx),
         Err(e) => println!("error while creating transaction: {e}"),
     }
+
+    let coinbase = transaction::Transaction::new_coinbase(
+        "sajkfsbabafs",
+        helpful_stuff::to_satoshi(10).expect("amount too large"),
+        0,
+    );
+
+    println!("\n{:?}", coinbase);
 }

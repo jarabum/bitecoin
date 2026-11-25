@@ -1,4 +1,4 @@
-use crate::{helpful_stuff, transaction, wallet::Wallet};
+use crate::{helpful_stuff, wallet::Wallet};
 
 // main transaction struct
 #[derive(Debug)]
@@ -7,7 +7,7 @@ pub struct Transaction {
     pub outputs: Vec<OutputTx>,
     pub timestamp: u64,
     pub id: String,
-    // pub coinbase_height: Option<u32>,
+    pub coinbase_height: Option<u32>,
 }
 
 // input transaction struct
@@ -95,7 +95,7 @@ impl Transaction {
             outputs,
             timestamp: helpful_stuff::get_time(),
             id: String::new(),
-            // coinbase_height: None,
+            coinbase_height: None,
         };
 
         transaction.sign(sender_wallet);
@@ -103,7 +103,6 @@ impl Transaction {
         Ok(transaction)
     }
 
-    /*
     // this returns true if the transaction is a coinbase transaction
     pub fn is_coinbase(&self) -> bool {
         self.inputs.is_empty()
@@ -111,17 +110,21 @@ impl Transaction {
 
     // this creates a new coinbase transaction
     pub fn new_coinbase(miner_addr: &str, amount: u128, height: u32) -> Self {
-        Transaction {
+        let mut tx = Transaction {
             inputs: vec![], // nothing is being spent
             outputs: vec![OutputTx {
                 recipient: miner_addr.to_string(),
                 amount,
             }],
             timestamp: helpful_stuff::get_time(),
+            id: String::new(),
             coinbase_height: Some(height),
-        }
+        };
+
+        tx.id = tx.get_id();
+
+        tx
     }
-    */
 
     // this returns a String that then gets signed by the wallet
     pub fn signing_payload(&self) -> String {
@@ -135,11 +138,9 @@ impl Transaction {
             payload += &format!("out:{}:{};", o.recipient, o.amount);
         }
 
-        /*
         if let Some(h) = self.coinbase_height {
             payload += &format!("cb:{};", h);
         }
-        */
 
         payload += &format!("t:{}", self.timestamp);
         payload
