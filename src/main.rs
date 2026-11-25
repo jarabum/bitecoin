@@ -1,34 +1,62 @@
 /*
 mod block;
-mod transaction;
 */
 mod helpful_stuff;
+mod transaction;
 mod wallet;
 
 // just some testing stuff for now
 fn main() {
     println!("bitecoin\n");
 
-    println!("'bitecoin' hash: {}", helpful_stuff::hash("bitecoin"));
-    println!("current unix time: {}", helpful_stuff::get_time());
-
     let wallet = wallet::Wallet::new();
 
     println!("\nwallet private key: {}", wallet.priv_key);
     println!("wallet public key: {}", wallet.pub_key);
-    println!("wallet address: {}", wallet.address);
+    println!("wallet address: {}\n", wallet.address);
 
-    println!(
-        "\nis wallet address valid: {}",
-        helpful_stuff::verify_address(wallet.address.as_str())
+    let spendable: Vec<(transaction::OutPoint, transaction::OutputTx)> = Vec::from([
+        (
+            transaction::OutPoint {
+                tx_id: String::from("ab12..."),
+                index: 0,
+            },
+            transaction::OutputTx {
+                amount: helpful_stuff::to_satoshi(10).expect("amount too large"),
+                recipient: String::from("bite...alice"),
+            },
+        ),
+        (
+            transaction::OutPoint {
+                tx_id: String::from("cd34..."),
+                index: 1,
+            },
+            transaction::OutputTx {
+                amount: helpful_stuff::to_satoshi(4).expect("amount too large"),
+                recipient: String::from("bite...alice"),
+            },
+        ),
+    ]);
+
+    match transaction::Transaction::new(
+        &wallet,
+        "bite0122b086f0b8031378fed567f91ad5ac078e1d190734a6bc63",
+        helpful_stuff::to_satoshi(10).expect("amount too large"),
+        helpful_stuff::to_satoshi(1).expect("amount too large"),
+        spendable,
+    ) {
+        Ok(tx) => {
+            println!("{:?}", tx);
+            println!("\nfull transaction payload: {}", tx.full_payload());
+        }
+        Err(e) => println!("error while creating transaction: {e}"),
+    }
+
+    let coinbase = transaction::Transaction::new_coinbase(
+        "sajkfsbabafs",
+        helpful_stuff::to_satoshi(10).expect("amount too large"),
+        0,
     );
 
-    let mut signature = wallet.sign("bitecoin");
-
-    println!("\n'bitecoin' signature with wallet: {}", signature);
-
-    println!(
-        "is signature valid: {}",
-        helpful_stuff::verify_signature(wallet.pub_key.as_str(), signature.as_str(), "bitecoin")
-    );
+    println!("\n{:?}", coinbase);
 }

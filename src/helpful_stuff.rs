@@ -97,3 +97,8 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
         .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
         .is_ok()
 }
+
+// this returns the given value in satoshis
+pub fn to_satoshi(amount: u128) -> Option<u128> {
+    amount.checked_mul(100_000_000)
+}

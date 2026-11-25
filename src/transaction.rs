@@ -6,6 +6,7 @@ pub struct Transaction {
     pub inputs: Vec<InputTx>,
     pub outputs: Vec<OutputTx>,
     pub timestamp: u64,
+    pub id: String,
     pub coinbase_height: Option<u32>,
 }
 
@@ -93,10 +94,12 @@ impl Transaction {
             inputs,
             outputs,
             timestamp: helpful_stuff::get_time(),
+            id: String::new(),
             coinbase_height: None,
         };
 
         transaction.sign(sender_wallet);
+        transaction.id = transaction.get_id();
         Ok(transaction)
     }
 
@@ -107,15 +110,20 @@ impl Transaction {
 
     // this creates a new coinbase transaction
     pub fn new_coinbase(miner_addr: &str, amount: u128, height: u32) -> Self {
-        Transaction {
+        let mut tx = Transaction {
             inputs: vec![], // nothing is being spent
             outputs: vec![OutputTx {
                 recipient: miner_addr.to_string(),
                 amount,
             }],
             timestamp: helpful_stuff::get_time(),
+            id: String::new(),
             coinbase_height: Some(height),
-        }
+        };
+
+        tx.id = tx.get_id();
+
+        tx
     }
 
     // this returns a String that then gets signed by the wallet
@@ -138,13 +146,36 @@ impl Transaction {
         payload
     }
 
-    pub fn id(&self) -> String {
-        helpful_stuff::hash(self.signing_payload().as_str())
+    pub fn full_payload(&self) -> String {
+        let mut payload = String::new();
+
+        for i in &self.inputs {
+            payload += &format!(
+                "in:{}:{}:{}:{};",
+                i.prev_tx_id, i.output_index, i.pub_key, i.signature
+            );
+        }
+
+        for o in &self.outputs {
+            payload += &format!("out:{}:{};", o.recipient, o.amount);
+        }
+
+        if let Some(h) = self.coinbase_height {
+            payload += &format!("cb:{};", h);
+        }
+
+        payload += &format!("t:{}", self.timestamp);
+        payload
+    }
+
+    // this returns the id of the transaction
+    pub fn get_id(&self) -> String {
+        helpful_stuff::hash(self.full_payload().as_str())
     }
 
     // this signs every input transaction
     pub fn sign(&mut self, wallet: &Wallet) {
-        let signature = wallet.get_signature(&self.signing_payload().as_str());
+        let signature = wallet.sign(self.signing_payload().as_str());
         for input in &mut self.inputs {
             input.signature = signature.clone();
         }
