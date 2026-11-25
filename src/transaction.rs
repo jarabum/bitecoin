@@ -1,4 +1,4 @@
-use crate::{helpful_stuff, wallet::Wallet};
+use crate::{helpful_stuff, transaction, wallet::Wallet};
 
 // main transaction struct
 #[derive(Debug)]
@@ -98,7 +98,8 @@ impl Transaction {
             // coinbase_height: None,
         };
 
-        //transaction.sign(sender_wallet);
+        transaction.sign(sender_wallet);
+        transaction.id = transaction.get_id();
         Ok(transaction)
     }
 
@@ -120,6 +121,7 @@ impl Transaction {
             coinbase_height: Some(height),
         }
     }
+    */
 
     // this returns a String that then gets signed by the wallet
     pub fn signing_payload(&self) -> String {
@@ -133,23 +135,26 @@ impl Transaction {
             payload += &format!("out:{}:{};", o.recipient, o.amount);
         }
 
+        /*
         if let Some(h) = self.coinbase_height {
             payload += &format!("cb:{};", h);
         }
+        */
 
         payload += &format!("t:{}", self.timestamp);
         payload
     }
 
-    pub fn id(&self) -> String {
+    // this returns the id of the transaction
+    pub fn get_id(&self) -> String {
         helpful_stuff::hash(self.signing_payload().as_str())
     }
 
     // this signs every input transaction
     pub fn sign(&mut self, wallet: &Wallet) {
-        let signature = wallet.get_signature(&self.signing_payload().as_str());
+        let signature = wallet.sign(self.signing_payload().as_str());
         for input in &mut self.inputs {
             input.signature = signature.clone();
         }
-    } */
+    }
 }

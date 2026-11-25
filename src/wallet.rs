@@ -41,6 +41,7 @@ impl Wallet {
         self.address = first_half + checksum_half;
     }
 
+    // this signs some data and returns it
     pub fn sign(&self, data: &str) -> String {
         helpful_stuff::sign(self.priv_key.as_str(), data)
     }
