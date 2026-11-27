@@ -102,3 +102,5 @@ pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> b
 pub fn to_satoshi(amount: u128) -> Option<u128> {
     amount.checked_mul(100_000_000)
 }
+
+// Very very very VERY helpful stuff!
