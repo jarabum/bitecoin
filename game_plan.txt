@@ -1,0 +1,96 @@
+this is the game plan for the crypto so i dont get lost
+
+Phase 1: Start
+
+Clear up the mods in main.rs
+Keep everything but change files over time
+Create hashing and timestamping
+
+Phase 2: Keys, wallets and addresses
+
+Generate a private key and derive the public key from it.
+Decide your address format: a prefix, a version, a hash of the public key, and a checksum.
+Write an address validator that checks the prefix, length, and checksum.
+Write sign and verify helpers.
+Done when: you can create a wallet, sign a message, verify it, and see that a changed message or a different key fails.
+
+Phase 3: Transactions
+
+Design the structures: inputs (which earlier output you're spending, plus public key and signature), outputs (recipient and amount), and a timestamp.
+Write the signing payload: a clear, delimited string of everything that must be signed.
+Make the transaction ID the hash of that payload.
+Add the coinbase variant: no inputs, plus the block height so IDs never collide.
+Done when: you can build a coinbase transaction and a normal one, and print their IDs.
+
+Phase 4: Blocks
+
+Design the block: height, previous hash, nonce, transactions, a hash of the transactions, timestamp, difficulty.
+Write the block hash function, with separators between fields.
+Write the subsidy function (initial reward, halving interval).
+Done when: you can build a block holding a coinbase and print its hash.
+
+Phase 5: The chain and the genesis block
+
+Create a Blockchain struct holding the list of blocks.
+Create the genesis block: height 0, a made-up previous hash, one coinbase.
+Write a function to build and append the next block.
+Done when: you print a chain of a few blocks where each prev_hash matches the block before.
+
+Phase 6: Mining
+
+Write the difficulty check (for example, the hash starts with N zeros).
+Write the mining loop: increase the nonce, rehash, stop when it passes.
+Start with low difficulty so it's fast.
+Done when: every block hash meets the difficulty and you can feel higher difficulty being slower.
+
+Phase 7: Basic block validation
+
+Write validate_block with only: height is previous + 1, prev_hash matches, stored hash matches a recomputed one, hash meets difficulty, coinbase rules.
+Route every block through it before adding to the chain.
+Test by tampering with a nonce, a transaction, and prev_hash.
+Done when: valid blocks get in and every tampered one is rejected.
+
+Phase 8: The UTXO set
+
+Create a map from (tx ID, output index) to the output, plus a coinbase flag and height.
+When a block is added, remove spent outputs and add new ones.
+Add a way to list a wallet's unspent outputs and total balance.
+Make the wallet's send function use real outputs.
+Done when: wallet A mines a block, sends coins to wallet B, and both balances are right after the next block.
+
+Phase 9: Transaction validation
+Add these one at a time, testing each with a deliberately bad transaction:
+
+Inputs exist in the UTXO set.
+Inputs are at least outputs, with checked arithmetic.
+No output is spent twice in one block.
+The public key matches the owner of the output being spent.
+The signature verifies.
+Coinbase maturity.
+Coinbase total is at most subsidy plus fees.
+
+Phase 10: Mempool and mining loop
+
+Keep a pool of pending transactions.
+The miner picks transactions, adds the coinbase, mines the block, and removes the included ones from the pool.
+Done when: you create transactions and a loop mines them into blocks automatically.
+
+Phase 11: Persistence
+
+Save blocks to disk and load them at startup.
+Rebuild the UTXO set by replaying the blocks.
+Done when: you can stop and restart the program with everything intact.
+
+Phase 12: Usability (optional)
+
+A command-line interface: create wallet, balance, send, mine.
+Difficulty adjustment and timestamp rules.
+Unit tests for the important rules.
+
+Phase 13: Networking (optional, the hard part)
+
+Nodes that connect over TCP.
+Exchange blocks and transactions.
+Sync a new node from a peer.
+Handle forks and reorgs.
+Done when: two programs on your machine stay in sync.

@@ -1,47 +1,42 @@
 use crate::block::Block;
-use crate::transaction::Transaction;
 
+// main blockchain struct
+#[derive(Debug)]
 pub struct Blockchain {
-    pub chain: Vec<Block>,
-    pub pending_transactions: Vec<Transaction>,
-    pub difficulty: usize,
+    chain: Vec<Block>,
 }
 
 impl Blockchain {
+    // use this to initiate the blockchain
     pub fn new() -> Self {
-        let mut genesis = Block {
-            id: 0,
-            hash: String::new(),
-            prev_hash: "0".repeat(64),
-            nonce: 0,
-            transactions: Vec::new(),
-            timestamp: 0,
-            difficulty: 4,
-        };
-
-        println!("genesis");
-
-        genesis.timestamp();
-        genesis.mine();
-
-        println!("mined");
-
         Blockchain {
-            chain: vec![genesis],
-            pending_transactions: Vec::new(),
-            difficulty: 4,
+            chain: vec![Block::genesis_block()],
         }
     }
 
-    pub fn add_block(&mut self, mut block: Block) {
-        block.prev_hash = self.chain.last().unwrap().hash.clone();
-        block.timestamp();
-        block.mine();
-
+    // use this to add a block
+    pub fn add_block(&mut self, block: Block) {
         self.chain.push(block);
     }
 
-    pub fn is_valid(&mut self) -> bool {
+    // this returns the latest block
+    pub fn tip(&self) -> Option<&Block> {
+        self.chain.last()
+    }
+
+    // this returns the chain height
+    pub fn height(&self) -> usize {
+        self.chain.len() - 1
+    }
+
+    // this returns a block at a specific height
+    pub fn get_block(&self, height: usize) -> Option<&Block> {
+        self.chain.get(height)
+    }
+
+    // this returns true if the blockchain is valid
+    // TODO: make this check the transactions and everything in the block
+    pub fn is_valid(&self) -> bool {
         for i in 1..self.chain.len() {
             let previous = &self.chain[i - 1];
             let current = &self.chain[i];
@@ -54,35 +49,18 @@ impl Blockchain {
                 return false;
             }
 
-            if !current.hash.starts_with(&"0".repeat(current.difficulty)) {
+            if !current
+                .hash
+                .starts_with("0".repeat(current.difficulty).as_str())
+            {
+                return false;
+            }
+
+            if current.height != previous.height + 1 {
                 return false;
             }
         }
+
         true
-    }
-
-    pub fn get_newest_hash(&self) -> String {
-        self.chain.last().unwrap().hash.clone()
-    }
-
-    pub fn mine_pending(&mut self) {
-        let mut block = Block {
-            id: self.chain.len(),
-            hash: String::new(),
-            nonce: 0,
-            prev_hash: self.get_newest_hash(),
-            transactions: std::mem::take(&mut self.pending_transactions),
-            timestamp: 0,
-            difficulty: self.difficulty,
-        };
-
-        block.timestamp();
-        block.mine();
-
-        self.chain.push(block);
-    }
-
-    pub fn add_transaction_pending(&mut self, transaction: Transaction) {
-        self.pending_transactions.push(transaction);
     }
 }

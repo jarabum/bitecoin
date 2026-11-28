@@ -1,30 +1,7 @@
-use std::io::{self, Write};
-use crate::crypto_functions;
-use inquire::{Password, PasswordDisplayMode};
+use crate::helpful_stuff;
+use crate::helpful_stuff::ADDR_VERSION;
 
-pub fn prompt(msg: &str) -> String {
-    print!("{msg}");
-    io::stdout().flush().unwrap();
-
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-
-    input.trim().to_string()
-}
-
-pub fn ask_wallet_details() -> (String, String, String) {
-    let location = prompt("Enter a path to the folder you want your wallet to be stored in: ");
-    let name = prompt("Choose your wallet name: ");
-    let password = Password::new("Choose your password used for encryption of your wallet: ")
-        .with_display_mode(PasswordDisplayMode::Masked)
-        .with_custom_confirmation_message("Confirm your password: ")
-        .with_custom_confirmation_error_message("Passwords do not match, try again.")
-        .prompt()
-        .unwrap();
-
-    (location, name, password)
-}
-
+// wallet struct
 pub struct Wallet {
     pub pub_key: String,
     pub priv_key: String,
@@ -32,15 +9,39 @@ pub struct Wallet {
 }
 
 impl Wallet {
+    // use this to create a new wallet
     pub fn new() -> Self {
-        let priv_key = crypto_functions::generate_priv_key();
-        let pub_key = crypto_functions::get_pub_key(&priv_key);
-        let address = crypto_functions::create_adress(&pub_key);
+        let priv_key = helpful_stuff::generate_priv_key();
+        let pub_key = helpful_stuff::get_pub_key(priv_key.as_str());
 
-        Self {
-            priv_key,
+        let mut wallet = Wallet {
             pub_key,
-            address,
-        }
+            priv_key,
+            address: String::new(),
+        };
+
+        wallet.set_address();
+
+        wallet
+    }
+
+    // this gets an address from a public key hex and sets address to it
+    pub fn set_address(&mut self) {
+        const PUB_KEY_HASH_LENGTH: usize = 32;
+        const CHECKSUM_LENGTH: usize = 16;
+
+        let full_hash = helpful_stuff::hash(self.pub_key.as_str());
+
+        let first_half = String::from("bite") + ADDR_VERSION + &full_hash[0..PUB_KEY_HASH_LENGTH];
+
+        let checksum_full = helpful_stuff::hash(first_half.as_str());
+        let checksum_half = &checksum_full[0..CHECKSUM_LENGTH];
+
+        self.address = first_half + checksum_half;
+    }
+
+    // this signs some data and returns it
+    pub fn sign(&self, data: &str) -> String {
+        helpful_stuff::sign(self.priv_key.as_str(), data)
     }
 }

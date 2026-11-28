@@ -1,0 +1,102 @@
+use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
+use sha2::{Digest, Sha256};
+use std::time::SystemTime;
+
+pub const VERSION: &str = "0001";
+pub const ADDR_VERSION: &str = "01";
+
+// this hashes the input and returns the hex of the hash
+pub fn hash(input: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+
+    let hash = hasher.finalize();
+
+    hex::encode(hash)
+}
+
+// this returns the unix time
+pub fn get_time() -> u64 {
+    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => return n.as_secs(),
+        Err(_) => panic!("Invalid Systemtime"),
+    }
+}
+
+// this generates and returns a new private key
+pub fn generate_priv_key() -> String {
+    let mut rng = rand::rng();
+    let priv_key = SigningKey::generate(&mut rng);
+
+    hex::encode(priv_key.to_bytes())
+}
+
+// this returns a public key that is generated from a private key
+pub fn get_pub_key(priv_key_hex: &str) -> String {
+    let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
+        .expect("Invalid private key hex")
+        .try_into()
+        .expect("Private key must be 32 bytes");
+    let priv_key = SigningKey::from_bytes(&priv_key_bytes);
+
+    hex::encode(priv_key.verifying_key().as_bytes())
+}
+
+// this returns true if a wallet address is correct
+pub fn verify_address(address: &str) -> bool {
+    // "bite" (4) + version (2) + hash (32) + checksum (16) = 54
+    if address.len() != 54
+        || !address.is_ascii()
+        || !address.starts_with("bite")
+        || &address[4..6] != ADDR_VERSION
+    {
+        return false;
+    }
+
+    let (body, checksum) = address.split_at(54 - 16);
+
+    &hash(body)[0..16] == checksum
+}
+
+// this signs some data with a private key hex and returns the signature
+pub fn sign(priv_key_hex: &str, data: &str) -> String {
+    let priv_key_bytes: [u8; 32] = hex::decode(priv_key_hex)
+        .expect("Invalid private key hex")
+        .try_into()
+        .expect("Private key must be 32 bytes");
+    let priv_key = SigningKey::from_bytes(&priv_key_bytes);
+
+    let signature = priv_key.sign(data.as_bytes());
+
+    hex::encode(signature.to_bytes())
+}
+
+// this verifies a signature using a public key and returns true if its valid
+pub fn verify_signature(pub_key_hex: &str, signature_hex: &str, data: &str) -> bool {
+    let Ok(sig_bytes) = hex::decode(signature_hex) else {
+        return false;
+    };
+    let Ok(sig_bytes): Result<[u8; 64], _> = sig_bytes.try_into() else {
+        return false;
+    };
+    let Ok(pk_bytes) = hex::decode(pub_key_hex) else {
+        return false;
+    };
+    let Ok(pk_bytes): Result<[u8; 32], _> = pk_bytes.try_into() else {
+        return false;
+    };
+    let Ok(pub_key) = VerifyingKey::from_bytes(&pk_bytes) else {
+        return false;
+    };
+
+    pub_key
+        .verify_strict(data.as_bytes(), &Signature::from_bytes(&sig_bytes))
+        .is_ok()
+}
+
+// this returns the given value in satoshis
+pub fn to_satoshi(amount: u128) -> Option<u128> {
+    amount.checked_mul(100_000_000)
+}
+
+// Very very very VERY helpful stuff!
