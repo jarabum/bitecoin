@@ -126,6 +126,24 @@ impl Transaction {
         tx
     }
 
+    // use this to create a genesis transaction
+    pub fn genesis_tx() -> Self {
+        let mut tx = Transaction {
+            inputs: vec![],
+            outputs: vec![OutputTx {
+                recipient: String::from("bite019296a8267f37029ee398f28d2fb9405ea9c097925399e727"),
+                amount: 0,
+            }],
+            timestamp: 123456, // TODO: change this timestamp
+            id: String::new(),
+            coinbase_height: Some(0),
+        };
+
+        tx.id = tx.get_id();
+
+        tx
+    }
+
     // this returns a String that then gets signed by the wallet
     pub fn signing_payload(&self) -> String {
         let mut payload = String::new();
