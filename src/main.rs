@@ -59,7 +59,7 @@ fn main() {
 
     println!("\n{:?}", coinbase);
 
-    let mut block = block::Block::new(
+    let block = block::Block::new(
         1,
         String::from("213b20e88a3b3353f62b527b638c6962ef77e254d5e60a0195f4805ff15105c6"),
         vec![coinbase],
