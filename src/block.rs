@@ -1,6 +1,7 @@
 use crate::{helpful_stuff, transaction::Transaction};
 
 // block struct
+#[derive(Debug)]
 pub struct Block {
     pub height: u32,
     pub hash: String,
@@ -13,17 +14,7 @@ pub struct Block {
 }
 
 pub const HALVING_INTERVAL: u32 = 300_000;
-pub const INITIAL_SUBSIDY: u128 = 50 * 100_000_000; // 50 coins in base units
-
-// this returns the block reward
-pub fn block_subsidy(height: u32) -> u128 {
-    let halvings = height / HALVING_INTERVAL;
-    if halvings >= 64 {
-        0
-    } else {
-        INITIAL_SUBSIDY >> halvings
-    }
-}
+pub const INITIAL_REWARD: u128 = 50 * 100_000_000; // 50 coins in base units
 
 impl Block {
     // use this to create a new block
@@ -50,7 +41,7 @@ impl Block {
         let mut data = String::new();
 
         for tx in self.tx.iter() {
-            data += &format!("tx:{};", tx.id().as_str());
+            data += &format!("tx:{};", tx.get_id().as_str());
         }
 
         self.tx_hash = helpful_stuff::hash(data.as_str());
@@ -59,52 +50,28 @@ impl Block {
 
     // this returns the block hash
     pub fn get_hash(&self) -> String {
-        let data = format!(
-            "{}{}{}{}{}{}",
-            self.height, self.prev_hash, self.nonce, self.tx_hash, self.timestamp, self.difficulty
-        );
-
-        helpful_stuff::hash(data.as_str())
+        helpful_stuff::hash(self.get_hashing_payload().as_str())
     }
 
-    // this function checks the coinbase transaction
-    pub fn check_coinbase(&self, lookup: &dyn Fn(&str, u32) -> Option<u128>) -> Result<(), String> {
-        let first_tx = self.tx.first().ok_or("block has no transactions")?;
+    // this returns the hashing payload for the block
+    pub fn get_hashing_payload(&self) -> String {
+        let mut payload = String::new();
 
-        if !first_tx.is_coinbase() {
-            return Err("first transaction must be a coinbase transaction".into());
+        payload += &format!(
+            "h:{};ph:{};n:{};txh:{};t:{};d:{};",
+            self.height, self.prev_hash, self.nonce, self.tx_hash, self.timestamp, self.difficulty,
+        );
+
+        payload
+    }
+
+    // this returns the block reward
+    pub fn get_block_reward(&self) -> u128 {
+        let halvings = self.height / HALVING_INTERVAL;
+        if halvings >= 64 {
+            0
+        } else {
+            INITIAL_REWARD >> halvings
         }
-        if first_tx.coinbase_height != Some(self.height) {
-            return Err("coinbase height mismatch".into());
-        }
-
-        if self.tx.iter().skip(1).any(|t| t.is_coinbase()) {
-            return Err("more than one coinbase".into());
-        }
-
-        let mut fees: u128 = 0;
-        for t in self.tx.iter().skip(1) {
-            let mut in_sum: u128 = 0;
-            for i in &t.inputs {
-                let amt = lookup(&i.prev_tx_id, i.output_index)
-                    .ok_or("input references unknown output")?;
-                in_sum = in_sum.checked_add(amt).ok_or("overflow")?;
-            }
-            let out_sum: u128 = t.outputs.iter().map(|o| o.amount).sum();
-            fees = fees
-                .checked_add(in_sum.checked_sub(out_sum).ok_or("outputs exceed inputs")?)
-                .ok_or("overflow")?;
-        }
-
-        let allowed = block_subsidy(self.height)
-            .checked_add(fees)
-            .ok_or("overflow")?;
-        let claimed: u128 = first_tx.outputs.iter().map(|o| o.amount).sum();
-
-        if claimed > allowed {
-            return Err(format!("coinbase claims {claimed}, max allowed {allowed}"));
-        }
-
-        Ok(())
     }
 }

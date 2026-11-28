@@ -17,14 +17,10 @@ pub fn hash(input: &str) -> String {
 
 // this returns the unix time
 pub fn get_time() -> u64 {
-    let mut time = 0;
-
     match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => time = n.as_secs(),
+        Ok(n) => return n.as_secs(),
         Err(_) => panic!("Invalid Systemtime"),
     }
-
-    time
 }
 
 // this generates and returns a new private key
