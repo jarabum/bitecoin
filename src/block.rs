@@ -10,15 +10,25 @@ pub struct Block {
     pub tx: Vec<Transaction>,
     pub tx_hash: String,
     pub timestamp: u64,
-    pub difficulty: u16,
+    pub difficulty: usize,
 }
 
 pub const HALVING_INTERVAL: usize = 300_000;
 pub const INITIAL_REWARD: u128 = 50 * 100_000_000; // 50 coins in base units
 
+// this returns the block reward
+pub fn get_block_reward(height: usize) -> u128 {
+    let halvings = height / HALVING_INTERVAL;
+    if halvings >= 64 {
+        0
+    } else {
+        INITIAL_REWARD >> halvings
+    }
+}
+
 impl Block {
     // use this to create a new block
-    pub fn new(height: usize, prev_hash: String, tx: Vec<Transaction>, difficulty: u16) -> Self {
+    pub fn new(height: usize, prev_hash: String, tx: Vec<Transaction>, difficulty: usize) -> Self {
         let mut block = Block {
             height,
             hash: String::new(),
@@ -36,6 +46,8 @@ impl Block {
         block
     }
 
+    // this creates a genesis block in the blockchain
+    // TODO: mine this block so its valid
     pub fn genesis_block() -> Self {
         let mut block = Block {
             height: 0,
@@ -63,7 +75,6 @@ impl Block {
         }
 
         self.tx_hash = helpful_stuff::hash(data.as_str());
-        println!("{}", data);
     }
 
     // this returns the block hash
@@ -81,15 +92,5 @@ impl Block {
         );
 
         payload
-    }
-
-    // this returns the block reward
-    pub fn get_block_reward(&self) -> u128 {
-        let halvings = self.height / HALVING_INTERVAL;
-        if halvings >= 64 {
-            0
-        } else {
-            INITIAL_REWARD >> halvings
-        }
     }
 }

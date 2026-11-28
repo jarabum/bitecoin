@@ -132,7 +132,7 @@ impl Transaction {
             inputs: vec![],
             outputs: vec![OutputTx {
                 recipient: String::from("bite019296a8267f37029ee398f28d2fb9405ea9c097925399e727"),
-                amount: 0,
+                amount: 50,
             }],
             timestamp: 123456, // TODO: change this timestamp
             id: String::new(),
