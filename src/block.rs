@@ -27,16 +27,18 @@ impl Block {
             difficulty,
         };
 
+        block.hash_tx();
+        block.hash = block.get_hash();
+
         block
     }
 
-    /*
     // this hashes the transactions
     pub fn hash_tx(&mut self) {
         let mut data = String::new();
 
         for tx in self.tx.iter() {
-            data += &format!("tx:{};", tx.id().as_str());
+            data += &format!("tx:{};", tx.get_id().as_str());
         }
 
         self.tx_hash = helpful_stuff::hash(data.as_str());
@@ -45,14 +47,22 @@ impl Block {
 
     // this returns the block hash
     pub fn get_hash(&self) -> String {
-        let data = format!(
-            "{}{}{}{}{}{}",
-            self.height, self.prev_hash, self.nonce, self.tx_hash, self.timestamp, self.difficulty
-        );
-
-        helpful_stuff::hash(data.as_str())
+        helpful_stuff::hash(self.get_hashing_payload().as_str())
     }
 
+    // this returns the hashing payload for the block
+    pub fn get_hashing_payload(&self) -> String {
+        let mut payload = String::new();
+
+        payload += &format!(
+            "h:{};ph:{};n:{};txh:{};t:{};d:{};",
+            self.height, self.prev_hash, self.nonce, self.tx_hash, self.timestamp, self.difficulty,
+        );
+
+        payload
+    }
+
+    /*
     // this function checks the coinbase transaction
     pub fn check_coinbase(&self, lookup: &dyn Fn(&str, u32) -> Option<u128>) -> Result<(), String> {
         let first_tx = self.tx.first().ok_or("block has no transactions")?;

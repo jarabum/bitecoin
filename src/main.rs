@@ -61,4 +61,5 @@ fn main() {
     let block = block::Block::new(0, String::from("prev_hash"), vec![coinbase], 2);
 
     println!("\n{:?}", block);
+    println!("block hashing payload: {}", block.get_hashing_payload());
 }
