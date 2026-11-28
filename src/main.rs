@@ -1,6 +1,4 @@
-/*
 mod block;
-*/
 mod helpful_stuff;
 mod transaction;
 mod wallet;
@@ -59,4 +57,8 @@ fn main() {
     );
 
     println!("\n{:?}", coinbase);
+
+    let block = block::Block::new(0, String::from("prev_hash"), vec![coinbase], 2);
+
+    println!("\n{:?}", block);
 }

@@ -1,6 +1,7 @@
 use crate::{helpful_stuff, transaction::Transaction};
 
 // block struct
+#[derive(Debug)]
 pub struct Block {
     pub height: u32,
     pub hash: String,
@@ -10,19 +11,6 @@ pub struct Block {
     pub tx_hash: String,
     pub timestamp: u64,
     pub difficulty: u16,
-}
-
-pub const HALVING_INTERVAL: u32 = 300_000;
-pub const INITIAL_SUBSIDY: u128 = 50 * 100_000_000; // 50 coins in base units
-
-// this returns the block reward
-pub fn block_subsidy(height: u32) -> u128 {
-    let halvings = height / HALVING_INTERVAL;
-    if halvings >= 64 {
-        0
-    } else {
-        INITIAL_SUBSIDY >> halvings
-    }
 }
 
 impl Block {
@@ -39,12 +27,10 @@ impl Block {
             difficulty,
         };
 
-        block.hash_tx();
-        block.hash = block.get_hash();
-
         block
     }
 
+    /*
     // this hashes the transactions
     pub fn hash_tx(&mut self) {
         let mut data = String::new();
@@ -107,4 +93,5 @@ impl Block {
 
         Ok(())
     }
+    */
 }
