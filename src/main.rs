@@ -9,7 +9,7 @@ fn main() {
 
     let wallet = wallet::Wallet::new();
 
-    println!("\nwallet private key: {}", wallet.priv_key);
+    println!("wallet private key: {}", wallet.priv_key);
     println!("wallet public key: {}", wallet.pub_key);
     println!("wallet address: {}\n", wallet.address);
 
@@ -62,4 +62,5 @@ fn main() {
 
     println!("\n{:?}", block);
     println!("block hashing payload: {}", block.get_hashing_payload());
+    println!("block reward: {}", block.get_block_reward());
 }
