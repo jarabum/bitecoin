@@ -1,6 +1,5 @@
 use crate::helpful_stuff;
 use crate::helpful_stuff::ADDR_VERSION;
-use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 
 // wallet struct
 pub struct Wallet {
