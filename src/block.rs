@@ -3,22 +3,32 @@ use crate::{helpful_stuff, transaction::Transaction};
 // block struct
 #[derive(Debug)]
 pub struct Block {
-    pub height: u32,
+    pub height: usize,
     pub hash: String,
     pub prev_hash: String,
     pub nonce: u128,
     pub tx: Vec<Transaction>,
     pub tx_hash: String,
     pub timestamp: u64,
-    pub difficulty: u16,
+    pub difficulty: usize,
 }
 
-pub const HALVING_INTERVAL: u32 = 300_000;
+pub const HALVING_INTERVAL: usize = 300_000;
 pub const INITIAL_REWARD: u128 = 50 * 100_000_000; // 50 coins in base units
+
+// this returns the block reward
+pub fn get_block_reward(height: usize) -> u128 {
+    let halvings = height / HALVING_INTERVAL;
+    if halvings >= 64 {
+        0
+    } else {
+        INITIAL_REWARD >> halvings
+    }
+}
 
 impl Block {
     // use this to create a new block
-    pub fn new(height: u32, prev_hash: String, tx: Vec<Transaction>, difficulty: u16) -> Self {
+    pub fn new(height: usize, prev_hash: String, tx: Vec<Transaction>, difficulty: usize) -> Self {
         let mut block = Block {
             height,
             hash: String::new(),
@@ -36,6 +46,26 @@ impl Block {
         block
     }
 
+    // this creates a genesis block in the blockchain
+    // TODO: mine this block so its valid
+    pub fn genesis_block() -> Self {
+        let mut block = Block {
+            height: 0,
+            hash: String::new(),
+            prev_hash: "0".repeat(64),
+            nonce: 0,
+            tx: vec![Transaction::genesis_tx()],
+            tx_hash: String::new(),
+            timestamp: 123456, // TODO: change this timestamp to the same one that will be in transactions
+            difficulty: 6,
+        };
+
+        block.hash_tx();
+        block.hash = block.get_hash();
+
+        block
+    }
+
     // this hashes the transactions
     pub fn hash_tx(&mut self) {
         let mut data = String::new();
@@ -45,7 +75,6 @@ impl Block {
         }
 
         self.tx_hash = helpful_stuff::hash(data.as_str());
-        println!("{}", data);
     }
 
     // this returns the block hash
@@ -63,15 +92,5 @@ impl Block {
         );
 
         payload
-    }
-
-    // this returns the block reward
-    pub fn get_block_reward(&self) -> u128 {
-        let halvings = self.height / HALVING_INTERVAL;
-        if halvings >= 64 {
-            0
-        } else {
-            INITIAL_REWARD >> halvings
-        }
     }
 }

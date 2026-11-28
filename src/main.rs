@@ -1,4 +1,5 @@
 mod block;
+mod blockchain;
 mod helpful_stuff;
 mod transaction;
 mod wallet;
@@ -45,7 +46,7 @@ fn main() {
     ) {
         Ok(tx) => {
             println!("{:?}", tx);
-            println!("\nfull transaction payload: {}", tx.full_payload());
+            //println!("\nfull transaction payload: {}", tx.full_payload());
         }
         Err(e) => println!("error while creating transaction: {e}"),
     }
@@ -53,14 +54,26 @@ fn main() {
     let coinbase = transaction::Transaction::new_coinbase(
         "sajkfsbabafs",
         helpful_stuff::to_satoshi(10).expect("amount too large"),
-        0,
+        1,
     );
 
     println!("\n{:?}", coinbase);
 
-    let block = block::Block::new(0, String::from("prev_hash"), vec![coinbase], 2);
+    let mut block = block::Block::new(
+        1,
+        String::from("213b20e88a3b3353f62b527b638c6962ef77e254d5e60a0195f4805ff15105c6"),
+        vec![coinbase],
+        0,
+    );
 
     println!("\n{:?}", block);
-    println!("block hashing payload: {}", block.get_hashing_payload());
-    println!("block reward: {}", block.get_block_reward());
+    //println!("block hashing payload: {}", block.get_hashing_payload());
+
+    let mut blockchain = blockchain::Blockchain::new();
+    blockchain.add_block(block);
+
+    println!("\nlatest block: {:?}", blockchain.tip());
+    println!("blockchain height: {}", blockchain.height());
+    println!("blockchain block 0: {:?}", blockchain.get_block(0));
+    println!("is blockchain valid: {}", blockchain.is_valid());
 }
